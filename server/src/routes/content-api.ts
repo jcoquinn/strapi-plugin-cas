@@ -1,5 +1,5 @@
-export const routes = {
-	login: {
+export default [
+	{
 		method: 'GET',
 		path: '/login',
 		handler: 'controller.login',
@@ -8,7 +8,7 @@ export const routes = {
 			auth: false,
 		},
 	},
-	callback: {
+	{
 		method: 'GET',
 		path: '/callback',
 		handler: 'controller.callback',
@@ -16,6 +16,4 @@ export const routes = {
 			auth: false,
 		},
 	},
-};
-
-export default [routes.login, routes.callback];
+];
