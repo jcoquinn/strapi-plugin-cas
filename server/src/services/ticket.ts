@@ -6,21 +6,28 @@ type Attrs = {
 };
 
 class Validator {
-	private url: string;
-	private parser: XMLParser;
+	public url: string;
 	private errPrefix = 'CAS:';
+	private parser: XMLParser;
 
-	constructor(casEndpoint: string) {
-		this.url = casEndpoint;
-		this.parser = new XMLParser();
+	static #instance: Validator;
+
+	static getInstance() {
+		if (Validator.#instance) {
+			return Validator.#instance;
+		}
+		Validator.#instance = new Validator();
+		Validator.#instance.url = strapi.plugin('cas').config('url');
+		Validator.#instance.parser = new XMLParser();
+		return Validator.#instance;
 	}
 
-	async validate(ticket: string, service: string): Promise<Attrs> {
-		const xml = await this.validateTicket(ticket, service);
-		return this.handleResponse(xml);
+	public async validate(ticket: string, service: string): Promise<Attrs> {
+		const xml = await this.serviceValidate(ticket, service);
+		return this.serviceResponse(xml);
 	}
 
-	private async validateTicket(ticket: string, service: string): Promise<string> {
+	private async serviceValidate(ticket: string, service: string): Promise<string> {
 		const t = encodeURIComponent(ticket);
 		const s = encodeURIComponent(service);
 		const url = `${this.url}/serviceValidate?ticket=${t}&service=${s}`;
@@ -32,7 +39,7 @@ class Validator {
 		return await resp.text();
 	}
 
-	private handleResponse(xml: string): Attrs {
+	private serviceResponse(xml: string): Attrs {
 		const data = this.parser.parse(xml);
 		const root = data['cas:serviceResponse'];
 		const success = root['cas:authenticationSuccess'];
@@ -61,11 +68,9 @@ class Validator {
 	}
 }
 
-const v = new Validator(process.env.CAS_URL);
-
-const ticket = ({ strapi }) => ({
+const ticket = () => ({
 	async validate(ticket: string, service: string): Promise<Attrs> {
-		return v.validate(ticket, service);
+		return Validator.getInstance().validate(ticket, service);
 	},
 });
 
