@@ -3,9 +3,10 @@ import type { Context } from 'koa';
 
 const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 	async login(ctx: Context) {
-		const url = strapi.plugin('cas').config('url');
-		const service = `${strapi.config.get('server.url')}/api/cas/callback`;
-		ctx.redirect(`${url}/login?service=${encodeURIComponent(service)}`);
+		const cas = strapi.plugin('cas');
+		const url = cas.config('url');
+		const service = encodeURIComponent(cas.config('serviceUrl'));
+		ctx.redirect(`${url}/login?service=${service}`);
 	},
 	async callback(ctx: Context) {
 		const { ticket } = ctx.query as { ticket?: string };
@@ -14,8 +15,10 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			ctx.body = { error: 'CAS: missing ticket query param' };
 			return;
 		}
-		const service = `${strapi.config.get('server.url')}/api/cas/callback`;
-		const attrs = await strapi.plugin('cas').service('ticket').validate(ticket, service);
+
+		const cas = strapi.plugin('cas');
+		const service = cas.config('serviceUrl');
+		const attrs = await cas.service('ticket').validate(ticket, service);
 
 		const up = strapi.plugin('users-permissions');
 		let user = await strapi.db
