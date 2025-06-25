@@ -3,6 +3,7 @@ import { XMLParser } from 'fast-xml-parser';
 type Attrs = {
 	username: string;
 	email: string;
+	[key: string]: string;
 };
 
 class Validator {
@@ -50,12 +51,15 @@ class Validator {
 			if (!username) {
 				throw this.newError('authenticationSuccess missing username');
 			}
-			const attrs = success['cas:attributes'] || {};
-			const email = attrs['cas:mail'] || attrs['cas:email'];
-			if (!email) {
-				throw this.newError('cas:attributes missing mail or email');
+			const attrs: Attrs = { username, email: null };
+			for (const [key, val] of Object.entries(success['cas:attributes'] || {})) {
+				const k = key.replace(/^cas:/, '');
+				attrs[k] = val as string;
 			}
-			return { username, email } as Attrs;
+			if (!attrs.email) {
+				throw this.newError('cas:attributes missing email');
+			}
+			return attrs;
 		}
 		if (failure) {
 			throw this.newError(failure['#text'] || 'ticket validation failed');

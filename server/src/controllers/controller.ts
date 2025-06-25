@@ -15,7 +15,6 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			ctx.body = { error: 'CAS: missing ticket query param' };
 			return;
 		}
-
 		const cas = strapi.plugin('cas');
 		const service = cas.config('serviceUrl');
 		const attrs = await cas.service('ticket').validate(ticket, service);
@@ -25,7 +24,7 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			.query('plugin::users-permissions.user')
 			.findOne({ where: { username: attrs.username } });
 		if (user) {
-			user = await up.service('user').edit(user.id, { email: attrs.email });
+			user = await up.service('user').edit(user.id, { ...attrs });
 			ctx.body = {
 				jwt: await up.service('jwt').issue({ id: user.id }),
 				user: await strapi.contentAPI.sanitize.output(
@@ -43,8 +42,7 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			.query('plugin::users-permissions.role')
 			.findOne({ where: { type: settings.default_role } });
 		user = await up.service('user').add({
-			username: attrs.username,
-			email: attrs.email,
+			...attrs,
 			role: role.id,
 			confirmed: true,
 		});
