@@ -8,18 +8,17 @@ export default {
 	}),
 	validator: (config: { url: string; serviceUrl: string }) => {
 		const env = {
-			CAS_URL: 'url',
-			CAS_SERVICE_URL: 'serviceUrl',
+			url: 'CAS_URL',
+			serviceUrl: 'CAS_SERVICE_URL',
 		};
-		Object.keys(env).forEach((k) => {
-			const key = env[k];
-			if (!config[key]) {
-				throw new Error(`${k} is required`);
+		for (const [k, v] of Object.keys(config).entries()) {
+			if (!v) {
+				throw new Error(`${env[k]} is required`);
 			}
-			config[key] = config[key].trim().replace(/\/+$/, '');
-			if (config[key] === '') {
-				throw new Error(`${k} invalid value: ${config[key]}`);
+			config[k] = v.trim().replace(/\/+$/, '');
+			if (config[k] === '') {
+				throw new Error(`${env[k]} invalid value: ${config[k]}`);
 			}
-		});
+		}
 	},
 };
