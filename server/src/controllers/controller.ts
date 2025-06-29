@@ -2,7 +2,7 @@ import type { Core } from '@strapi/strapi';
 import type { Context } from 'koa';
 
 const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
-	async login(ctx: Context) {
+	async _login(ctx: Context) {
 		const cas = strapi.plugin('cas');
 		const url = cas.config('url');
 		const service = encodeURIComponent(cas.config('serviceUrl'));
@@ -24,16 +24,10 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			.query('plugin::users-permissions.user')
 			.findOne({ where: { username: attrs.username } });
 		if (user) {
-			user = await up.service('user').edit(user.id, { ...attrs });
-			ctx.body = {
-				jwt: await up.service('jwt').issue({ id: user.id }),
-				user: await strapi.contentAPI.sanitize.output(
-					user,
-					strapi.getModel('plugin::users-permissions.user'),
-					{ auth: ctx.state.auth },
-				),
-			};
-			return;
+			const jwt = await up.service('jwt').issue({ id: user.id });
+			return ctx.redirect(
+				`${cas.config('returnUrl')}?accessToken=${encodeURIComponent(jwt)}`,
+			);
 		}
 		const settings: { default_role?: number } = await strapi
 			.store({ type: 'plugin', name: 'users-permissions', key: 'advanced' })
@@ -46,14 +40,8 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			role: role.id,
 			confirmed: true,
 		});
-		ctx.body = {
-			jwt: await up.service('jwt').issue({ id: user.id }),
-			user: await strapi.contentAPI.sanitize.output(
-				user,
-				strapi.getModel('plugin::users-permissions.user'),
-				{ auth: ctx.state.auth },
-			),
-		};
+		const jwt = await up.service('jwt').issue({ id: user.id });
+		return ctx.redirect(`${cas.config('returnUrl')}?accessToken=${encodeURIComponent(jwt)}`);
 	},
 });
 

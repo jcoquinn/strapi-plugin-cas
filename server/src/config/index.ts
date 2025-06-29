@@ -5,11 +5,14 @@ export default {
 		// Strapi backend URL to use as the service param in CAS login and validation requests.
 		// E.g. http[s]://<host>[:port]/api/cas/callback
 		serviceUrl: env('CAS_SERVICE_URL'),
+		// Frontend URL to redirect to after login. Used to pass access token.
+		returnUrl: env('CAS_RETURN_URL'),
 	}),
 	validator: (config: { url: string; serviceUrl: string }) => {
 		const env = {
 			url: 'CAS_URL',
 			serviceUrl: 'CAS_SERVICE_URL',
+			returnUrl: 'CAS_RETURN_URL',
 		};
 		for (const [k, v] of Object.keys(config).entries()) {
 			if (!v) {
