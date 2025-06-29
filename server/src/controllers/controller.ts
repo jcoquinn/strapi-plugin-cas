@@ -2,7 +2,7 @@ import type { Core } from '@strapi/strapi';
 import type { Context } from 'koa';
 
 const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
-	async _login(ctx: Context) {
+	async login(ctx: Context) {
 		const cas = strapi.plugin('cas');
 		const url = cas.config('url');
 		const service = encodeURIComponent(cas.config('serviceUrl'));
