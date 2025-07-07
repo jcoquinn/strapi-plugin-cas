@@ -26,7 +26,7 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 		if (user) {
 			const jwt = await up.service('jwt').issue({ id: user.id });
 			return ctx.redirect(
-				`${cas.config('returnUrl')}?accessToken=${encodeURIComponent(jwt)}`,
+				`${cas.config('returnUrl')}?access_token=${encodeURIComponent(jwt)}`,
 			);
 		}
 		const settings: { default_role?: number } = await strapi
@@ -41,7 +41,7 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
 			confirmed: true,
 		});
 		const jwt = await up.service('jwt').issue({ id: user.id });
-		return ctx.redirect(`${cas.config('returnUrl')}?accessToken=${encodeURIComponent(jwt)}`);
+		return ctx.redirect(`${cas.config('returnUrl')}?access_token=${encodeURIComponent(jwt)}`);
 	},
 });
 
